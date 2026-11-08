@@ -64,10 +64,13 @@ jobs:
           # libavif builds its vendored dav1d decoder from source with Meson
           # during the Flutter native-assets step; the runner has neither
           # Meson nor Ninja preinstalled, so the build fails without them.
+          # Upstream's own github-release.yml installs the same three tools
+          # (meson ninja-build nasm) in its "Install Linux native build tools" step.
           sudo apt-get update
-          sudo apt-get install -y meson ninja-build
+          sudo apt-get install -y meson ninja-build nasm
           meson --version
           ninja --version
+          nasm --version
 
       - name: Initialize workspace (pub get + codegen)
         env:
@@ -111,6 +114,18 @@ jobs:
             --dart-define RELEASE_CHANNEL=github \
             --split-per-abi \
             -t lib/main.dart
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: diagnostics
+          include-hidden-files: true
+          retention-days: 7
+          path: |
+            .dart_tool/hooks_runner/**/stdout.txt
+            .dart_tool/hooks_runner/**/stderr.txt
+            .dart_tool/hooks_runner/**/meson-log.txt
 
       - name: List APK outputs
         if: always()
