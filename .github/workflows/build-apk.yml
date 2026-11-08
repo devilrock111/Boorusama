@@ -58,6 +58,17 @@ jobs:
           cat env/prod.json
           flutter --version
 
+      - name: Install Meson and Ninja (needed by libavif native build)
+        run: |
+          set -euo pipefail
+          # libavif builds its vendored dav1d decoder from source with Meson
+          # during the Flutter native-assets step; the runner has neither
+          # Meson nor Ninja preinstalled, so the build fails without them.
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build
+          meson --version
+          ninja --version
+
       - name: Initialize workspace (pub get + codegen)
         env:
           BOORUSAMA_USE_FVM: "false"
